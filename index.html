@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>First Day of College (3D Immersive)</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div id="blocker">
+      <div id="instructions">
+        <span style="font-size:36px; font-weight: bold;">First Day of College</span><br/>
+        Click to immerse.<br/><br/>
+        W, A, S, D = Move<br/>
+        SPACE = Jump<br/>
+        MOUSE = Look around<br/>
+        LEFT CLICK = Interact with objects
+      </div>
+    </div>
+    
+    <div id="crosshair"></div>
+    <div id="minimap-container">
+        <canvas id="minimap"></canvas>
+        <div id="minimap-marker"></div>
+    </div>
+    
+    <div id="ui-overlay">
+        <div id="objective-text"></div>
+        <div id="instructions-small">WASD: Move | MOUSE: Look</div>
+    </div>
+
+    <!-- DIALOGUE SYSTEM OVERLAY -->
+    <div id="dialogue-box" style="display: none;">
+        <div id="dialogue-header">
+            <div id="dialogue-speaker">Officer Miller</div>
+            <button id="dialogue-btn-action" class="dialogue-action-btn">Show ID & Enter</button>
+        </div>
+        <div id="chat-log"></div>
+        <input type="text" id="chat-input" placeholder="Type a message and press Enter..." autocomplete="off"/>
+    </div>
+    
+    <!-- Debug-only error catcher (enable with ?debug=1) -->
+    <div id="dev-error-log" style="position:absolute; top:0; left:0; color:white; background:red; z-index:9999; padding: 10px; display:none; max-width:100%; white-space:pre-wrap;"></div>
+    <script>
+      (function () {
+        try {
+          var params = new URLSearchParams(window.location.search);
+          if (!params.has('debug')) return;
+          var el = document.getElementById('dev-error-log');
+          window.addEventListener('error', function(e) {
+            el.style.display = 'block';
+            el.innerText += e.message + ' at ' + e.filename + ':' + e.lineno + '\n';
+          });
+          window.addEventListener('unhandledrejection', function(e) {
+            el.style.display = 'block';
+            el.innerText += 'Promise Reject: ' + e.reason + '\n';
+          });
+        } catch (_) {
+          // no-op
+        }
+      })();
+    </script>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
