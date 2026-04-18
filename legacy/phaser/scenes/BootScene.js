@@ -34,7 +34,7 @@ export default class BootScene extends Phaser.Scene {
     charGraphics.fillRect(10, 8, 4, 4);
     charGraphics.fillRect(18, 8, 4, 4);
     charGraphics.generateTexture('player_sprite', 32, 32);
-    
+
     // Generate an interactive "mission" object
     const missionGraphics = this.make.graphics({ x: 0, y: 0, add: false });
     missionGraphics.fillStyle(0xffd700); // gold
@@ -49,3 +49,4 @@ export default class BootScene extends Phaser.Scene {
     this.scene.start('GameScene');
   }
 }
+

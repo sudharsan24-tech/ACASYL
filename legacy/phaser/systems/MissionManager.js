@@ -14,7 +14,7 @@ export default class MissionManager {
     this.dialogBg.fillRoundedRect(0, 0, 600, 250, 16);
     this.dialogBg.lineStyle(4, 0x4a90e2, 1);
     this.dialogBg.strokeRoundedRect(0, 0, 600, 250, 16);
-    
+
     // Fix to camera center
     this.dialogContainer = this.scene.add.container(
       this.scene.cameras.main.width / 2 - 300,
@@ -48,7 +48,7 @@ export default class MissionManager {
 
   triggerMission(id, description) {
     this.activeMission = id;
-    
+
     // Map mission IDs to educational content
     const educationalContent = {
         'EE_Mission': "Electrical Engineering Concept: Logic Gates\n\nThe power board is shorting! To fix it, you need to use an AND gate. Only if both Input A and Input B are HIGH, will the circuit be complete.\n\nTask: Find the missing gate from the lab repository.",
@@ -74,3 +74,4 @@ export default class MissionManager {
     this.dialogContainer.setVisible(false);
   }
 }
+

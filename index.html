@@ -9,34 +9,192 @@
   <body>
     <div id="blocker">
       <div id="instructions">
-        <span style="font-size:36px; font-weight: bold;">First Day of College</span><br/>
-        Click to immerse.<br/><br/>
-        W, A, S, D = Move<br/>
-        SPACE = Jump<br/>
-        MOUSE = Look around<br/>
-        LEFT CLICK = Interact with objects
+        <div class="intro-card">
+          <div class="intro-kicker">Immersive Campus Sim</div>
+          <h1 class="intro-title">First Day of College</h1>
+          <p class="intro-copy">Step through the gate, follow the live campus HUD, and clear your first engineering mission chain.</p>
+          <div class="intro-controls">
+            <div class="intro-control"><span class="control-key">WASD</span><span class="control-desc">Move through campus</span></div>
+            <div class="intro-control"><span class="control-key">Mouse</span><span class="control-desc">Look around</span></div>
+            <div class="intro-control"><span class="control-key">Space</span><span class="control-desc">Jump</span></div>
+            <div class="intro-control"><span class="control-key">Click</span><span class="control-desc">Interact with targets</span></div>
+          </div>
+          <div class="intro-cta">Click anywhere on this panel to enter the campus.</div>
+        </div>
       </div>
     </div>
     
-    <div id="crosshair"></div>
+    <div id="crosshair">
+      <span class="crosshair-ring"></span>
+      <span class="crosshair-dot"></span>
+    </div>
     <div id="minimap-container">
+        <div class="minimap-shell">
+            <div class="minimap-title">Campus Radar</div>
+            <div class="minimap-subtitle">Block guide active</div>
+        </div>
         <canvas id="minimap"></canvas>
         <div id="minimap-marker"></div>
+        <div id="minimap-target" style="display:none;"></div>
+        <div class="minimap-north">N</div>
     </div>
     
     <div id="ui-overlay">
-        <div id="objective-text"></div>
-        <div id="instructions-small">WASD: Move | MOUSE: Look</div>
+        <div class="hud-column hud-column-left">
+            <div class="hud-card hud-card-objective">
+                <div class="hud-label-row">
+                    <div class="hud-label">Mission Feed</div>
+                    <div id="objective-state" class="hud-state">Checkpoint</div>
+                </div>
+                <div id="objective-text"></div>
+                <div id="objective-distance"></div>
+            </div>
+            <div class="hud-card hud-card-status">
+                <div class="hud-label-row">
+                    <div class="hud-label">System</div>
+                    <div id="world-status" class="hud-status-badge">Exploration Online</div>
+                </div>
+                <div class="hud-status-copy">Pointer lock and campus radar are synced to your current objective.</div>
+            </div>
+        </div>
+        <div class="hud-column hud-column-right">
+            <div class="hud-card hud-card-controls">
+                <div class="hud-label">Quick Controls</div>
+                <div id="instructions-small">WASD Move | Mouse Look | Click Interact | Space Jump</div>
+            </div>
+        </div>
     </div>
 
     <!-- DIALOGUE SYSTEM OVERLAY -->
     <div id="dialogue-box" style="display: none;">
         <div id="dialogue-header">
-            <div id="dialogue-speaker">Officer Miller</div>
+            <div class="dialogue-speaker-wrap">
+                <div id="dialogue-speaker">Officer Miller</div>
+                <div id="dialogue-context">Campus Access Check</div>
+            </div>
             <button id="dialogue-btn-action" class="dialogue-action-btn">Show ID & Enter</button>
         </div>
         <div id="chat-log"></div>
-        <input type="text" id="chat-input" placeholder="Type a message and press Enter..." autocomplete="off"/>
+        <div class="dialogue-input-wrap">
+            <input type="text" id="chat-input" placeholder="Type a message and press Enter..." autocomplete="off"/>
+        </div>
+    </div>
+
+    <div id="lesson-modal" style="display:none;">
+        <div class="lesson-shell">
+            <div class="lesson-header">
+                <div>
+                    <div class="lesson-kicker">Visual Lesson</div>
+                    <div id="lesson-title">Kirchhoff's Law</div>
+                </div>
+                <button id="lesson-close" class="dialogue-action-btn" type="button">Close Lesson</button>
+            </div>
+            <div class="lesson-copy" id="lesson-copy">Basic Electrical Engineering, First Visual Lesson.</div>
+            <video id="lesson-video" controls preload="metadata">
+                <source src="/lessons/Kirchoff.mp4" type="video/mp4" />
+            </video>
+        </div>
+    </div>
+
+    <div id="quiz-modal" style="display:none;">
+        <div class="quiz-shell">
+            <div class="quiz-header">
+                <div>
+                    <div id="quiz-kicker" class="lesson-kicker">Kirchhoff Challenge</div>
+                    <div id="quiz-title">Mini-Game</div>
+                </div>
+                <button id="quiz-close" class="dialogue-action-btn" type="button">Close Challenge</button>
+            </div>
+
+            <div id="quiz-start-screen" class="quiz-screen">
+                <div id="quiz-lead" class="quiz-lead">Pass the Kirchhoff challenge to unlock the next lesson.</div>
+                <div id="quiz-rule-list" class="quiz-rule-list"></div>
+                <button id="quiz-start-btn" class="dialogue-action-btn quiz-primary-btn" type="button">Start Game</button>
+            </div>
+
+            <div id="quiz-game-screen" class="quiz-screen" style="display:none;">
+                <div class="quiz-stats-grid">
+                    <div class="quiz-stat-card">
+                        <span class="quiz-stat-label">Question</span>
+                        <strong id="quiz-question-number">1 / 5</strong>
+                    </div>
+                    <div class="quiz-stat-card">
+                        <span class="quiz-stat-label">Difficulty</span>
+                        <strong id="quiz-difficulty">Easy</strong>
+                    </div>
+                    <div id="quiz-points-card" class="quiz-stat-card">
+                        <span class="quiz-stat-label">Points</span>
+                        <strong id="quiz-points">10</strong>
+                    </div>
+                    <div id="quiz-score-card" class="quiz-stat-card">
+                        <span class="quiz-stat-label">Score</span>
+                        <strong id="quiz-score">0</strong>
+                    </div>
+                    <div id="quiz-timer-card" class="quiz-stat-card quiz-stat-card--timer">
+                        <span class="quiz-stat-label">Time Left</span>
+                        <strong id="quiz-timer">05:00</strong>
+                    </div>
+                    <div id="quiz-lives-card" class="quiz-stat-card" style="display:none;">
+                        <span class="quiz-stat-label">Lives</span>
+                        <strong id="quiz-lives">3</strong>
+                    </div>
+                </div>
+
+                <div id="quiz-question-text" class="quiz-question-text"></div>
+                <div id="quiz-question-feedback" class="quiz-build-hint" style="display:none;"></div>
+                <div id="quiz-options" class="quiz-options"></div>
+
+                <div class="quiz-footer-actions">
+                    <button id="quiz-next-btn" class="dialogue-action-btn quiz-primary-btn" type="button" disabled>Next Question</button>
+                </div>
+            </div>
+
+            <div id="quiz-build-screen" class="quiz-screen" style="display:none;">
+                <div class="quiz-stats-grid">
+                    <div class="quiz-stat-card">
+                        <span class="quiz-stat-label">Stage</span>
+                        <strong id="quiz-build-stage">Assembly</strong>
+                    </div>
+                    <div class="quiz-stat-card">
+                        <span class="quiz-stat-label">Unlocked</span>
+                        <strong id="quiz-unlocked-count">0 / 4</strong>
+                    </div>
+                    <div class="quiz-stat-card">
+                        <span class="quiz-stat-label">Step</span>
+                        <strong id="quiz-build-step-count">1 / 4</strong>
+                    </div>
+                </div>
+
+                <div id="quiz-build-instructions" class="quiz-question-text"></div>
+                <div id="quiz-build-hint" class="quiz-build-hint"></div>
+
+                <div class="quiz-build-layout">
+                    <div>
+                        <div class="quiz-build-label">Unlocked Components</div>
+                        <div id="quiz-component-bank" class="quiz-component-bank"></div>
+                    </div>
+                    <div>
+                        <div class="quiz-build-label">Circuit Assembly</div>
+                        <div id="quiz-circuit-slots" class="quiz-circuit-slots"></div>
+                    </div>
+                </div>
+
+                <div class="quiz-footer-actions">
+                    <button id="quiz-validate-btn" class="dialogue-action-btn quiz-primary-btn" type="button">Validate Circuit</button>
+                    <button id="quiz-reset-build-btn" class="dialogue-action-btn" type="button">Reset Build</button>
+                </div>
+            </div>
+
+            <div id="quiz-result-screen" class="quiz-screen" style="display:none;">
+                <div id="quiz-result-title" class="quiz-result-title">Result</div>
+                <div id="quiz-result-copy" class="quiz-result-copy"></div>
+                <div id="quiz-result-score" class="quiz-result-score">Score: 0 / 100</div>
+                <div class="quiz-footer-actions">
+                    <button id="quiz-retry-btn" class="dialogue-action-btn quiz-primary-btn" type="button">Retry</button>
+                    <button id="quiz-result-close" class="dialogue-action-btn" type="button">Return</button>
+                </div>
+            </div>
+        </div>
     </div>
     
     <!-- Debug-only error catcher (enable with ?debug=1) -->

@@ -36,11 +36,11 @@ export default class GameScene extends Phaser.Scene {
 
     // 5. Initialize Mission Manager
     this.missionManager = new MissionManager(this);
-    
+
     // Add interactive mission points around the campus
     this.createMissionPoint(250, 520, 'EE_Mission', 'Fix the Logic Gate Control Board');
     this.createMissionPoint(1100, 300, 'Mech_Mission', 'Calculate the Truss Tension');
-    
+
     // Simple UI text overlay for instructions
     this.uiText = this.add.text(10, 10, 'Explore the campus using WASD/Arrows\nFind yellow mission markers!', {
       fontFamily: 'Arial',
@@ -73,7 +73,7 @@ export default class GameScene extends Phaser.Scene {
   createMissionPoint(x, y, id, description) {
     const point = this.physics.add.image(x, y, 'mission_obj');
     point.setImmovable(true);
-    
+
     // Bounce animation
     this.tweens.add({
       targets: point,
@@ -97,3 +97,4 @@ export default class GameScene extends Phaser.Scene {
     }
   }
 }
+

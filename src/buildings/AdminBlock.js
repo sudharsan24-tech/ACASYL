@@ -1,195 +1,183 @@
 import * as THREE from 'three';
+import {
+    addCollisionBox,
+    addDoorSet,
+    addWalkableBox,
+    createStaircase,
+    furnishSeminarHall,
+} from './buildingUtils.js';
 
-export function buildAdminBlock(context, createNPC) {
-    const uGrp = new THREE.Group();
-    // Strictly positioned on the Right exactly spanning deep inside the compass
-    uGrp.position.set(700, 0, -160); 
+function addOfficeSuite(parent, context, options) {
+    const {
+        center,
+        width,
+        depth,
+        floorY,
+        nameMaterial,
+        deskMaterial,
+        chairMaterial,
+        wallMaterial,
+        glassMaterial,
+    } = options;
 
-    const bMat = new THREE.MeshStandardMaterial({color: 0xe6d5c3, roughness: 0.9}); 
-    const fMat = new THREE.MeshStandardMaterial({color: 0x888888, roughness: 0.7}); 
-    const wallLMat = new THREE.MeshStandardMaterial({color: 0xd4c2af, roughness: 0.9}); 
-    const glassMat = new THREE.MeshStandardMaterial({color: 0xadd8e6, transparent: true, opacity: 0.3});
+    const roomHeight = 46;
+    const halfWidth = width / 2;
+    const halfDepth = depth / 2;
+    const zBack = center.z - halfDepth;
 
-    // Heights pushed to 80 units apart 
-    const heights = [0, 80, 160]; 
-    heights.forEach((y, index) => {
-        // Back piece: Box(160, 2, 400). Width 160. Z spans -200 to 200.
-        const floorB = new THREE.Mesh(new THREE.BoxGeometry(160, 2, 400), fMat);
-        floorB.position.set(80, y, 0); floorB.receiveShadow = true; uGrp.add(floorB); context.walkableFloors.push(floorB);
-        // Left Arm: Box(600, 2, 160). Spans X: 0 to -600. Z: -200 to -40.
-        const floorL = new THREE.Mesh(new THREE.BoxGeometry(600, 2, 160), fMat);
-        floorL.position.set(-300, y, -120); floorL.receiveShadow = true; uGrp.add(floorL); context.walkableFloors.push(floorL);
-        // Right Arm: Box(600, 2, 160). Spans X: 0 to -600. Z: 40 to 200.
-        const floorR = new THREE.Mesh(new THREE.BoxGeometry(600, 2, 160), fMat);
-        floorR.position.set(-300, y, 120); floorR.receiveShadow = true; uGrp.add(floorR); context.walkableFloors.push(floorR);
-        
-        if(index < 2) {
-            // Outer Protective Walls (Height 80)
-            const wallB = new THREE.Mesh(new THREE.BoxGeometry(2, 80, 400), bMat);
-            wallB.position.set(159, y + 40, 0); wallB.castShadow = true; uGrp.add(wallB); context.objects.push(wallB);
-
-            const wallLO = new THREE.Mesh(new THREE.BoxGeometry(600, 80, 2), bMat); // Left Outer
-            wallLO.position.set(-300, y + 40, -199); wallLO.castShadow = true; uGrp.add(wallLO); context.objects.push(wallLO);
-
-            const wallRO = new THREE.Mesh(new THREE.BoxGeometry(600, 80, 2), bMat); // Right Outer
-            wallRO.position.set(-300, y + 40, 199); wallRO.castShadow = true; uGrp.add(wallRO); context.objects.push(wallRO);
-
-            // Front Facade Wall with Giant Arching Entrance closing the vast open area
-            const fWallL = new THREE.Mesh(new THREE.BoxGeometry(2, 80, 160), bMat); fWallL.position.set(-599, y+40, -120); uGrp.add(fWallL); context.objects.push(fWallL);
-            const fWallR = new THREE.Mesh(new THREE.BoxGeometry(2, 80, 160), bMat); fWallR.position.set(-599, y+40, 120); uGrp.add(fWallR); context.objects.push(fWallR);
-            const fArch = new THREE.Mesh(new THREE.BoxGeometry(2, 20, 80), bMat); fArch.position.set(-599, y+70, 0); uGrp.add(fArch); context.objects.push(fArch);
-        }
-
-        // PROCEDURAL ROOM PARTITIONS WITH PROPER DOORS
-        if(index < 2) {
-            const doorMat = new THREE.MeshStandardMaterial({color: 0x4a3c31, roughness: 0.9});
-            for(let xP = -150; xP >= -450; xP -= 150) {
-                // Split Partitions for archway
-                const partLa = new THREE.Mesh(new THREE.BoxGeometry(2, 80, 40), wallLMat); partLa.position.set(xP, y + 40, -180); uGrp.add(partLa); context.objects.push(partLa);
-                const partLb = new THREE.Mesh(new THREE.BoxGeometry(2, 80, 40), wallLMat); partLb.position.set(xP, y + 40, -120); uGrp.add(partLb); context.objects.push(partLb);
-                const pArchL = new THREE.Mesh(new THREE.BoxGeometry(2, 20, 20), wallLMat); pArchL.position.set(xP, y + 70, -150); uGrp.add(pArchL); context.objects.push(pArchL);
-                // Door Left Ajar
-                const pDoorL = new THREE.Mesh(new THREE.BoxGeometry(2, 60, 20), doorMat); pDoorL.position.set(xP+8, y+30, -158); pDoorL.rotation.y = -Math.PI/4; uGrp.add(pDoorL); context.objects.push(pDoorL);
-
-                const partRa = new THREE.Mesh(new THREE.BoxGeometry(2, 80, 40), wallLMat); partRa.position.set(xP, y + 40, 180); uGrp.add(partRa); context.objects.push(partRa);
-                const partRb = new THREE.Mesh(new THREE.BoxGeometry(2, 80, 40), wallLMat); partRb.position.set(xP, y + 40, 120); uGrp.add(partRb); context.objects.push(partRb);
-                const pArchR = new THREE.Mesh(new THREE.BoxGeometry(2, 20, 20), wallLMat); pArchR.position.set(xP, y + 70, 150); uGrp.add(pArchR); context.objects.push(pArchR);
-                // Door Right Ajar
-                const pDoorR = new THREE.Mesh(new THREE.BoxGeometry(2, 60, 20), doorMat); pDoorR.position.set(xP+8, y+30, 158); pDoorR.rotation.y = Math.PI/4; uGrp.add(pDoorR); context.objects.push(pDoorR);
-            }
-
-            for(let cx = -75; cx >= -525; cx -= 150) {
-                // Massive corridor walls enclosing rooms - ONLY VIP room gets glass
-                const isVIP = (index === 0 && cx === -75);
-                const cMatL = isVIP ? glassMat : wallLMat;
-                const cMatR = isVIP ? glassMat : wallLMat;
-                
-                // Solid walls along the huge hallway Corridor with door cutouts
-                const secLa = new THREE.Mesh(new THREE.BoxGeometry(50, 80, 2), cMatL); secLa.position.set(cx-35, y + 40, -100); uGrp.add(secLa); context.objects.push(secLa);
-                const secLb = new THREE.Mesh(new THREE.BoxGeometry(50, 80, 2), cMatL); secLb.position.set(cx+35, y + 40, -100); uGrp.add(secLb); context.objects.push(secLb);
-                const cArchL = new THREE.Mesh(new THREE.BoxGeometry(20, 20, 2), cMatL); cArchL.position.set(cx, y + 70, -100); uGrp.add(cArchL); context.objects.push(cArchL);
-                const cDoorL = new THREE.Mesh(new THREE.BoxGeometry(20, 60, 2), doorMat); cDoorL.position.set(cx+8, y+30, -92); cDoorL.rotation.y = -Math.PI/4; uGrp.add(cDoorL); context.objects.push(cDoorL);
-
-                const secRa = new THREE.Mesh(new THREE.BoxGeometry(50, 80, 2), cMatR); secRa.position.set(cx-35, y + 40, 100); uGrp.add(secRa); context.objects.push(secRa);
-                const secRb = new THREE.Mesh(new THREE.BoxGeometry(50, 80, 2), cMatR); secRb.position.set(cx+35, y + 40, 100); uGrp.add(secRb); context.objects.push(secRb);
-                const cArchR = new THREE.Mesh(new THREE.BoxGeometry(20, 20, 2), cMatR); cArchR.position.set(cx, y + 70, 100); uGrp.add(cArchR); context.objects.push(cArchR);
-                const cDoorR = new THREE.Mesh(new THREE.BoxGeometry(20, 60, 2), doorMat); cDoorR.position.set(cx+8, y+30, 92); cDoorR.rotation.y = Math.PI/4; uGrp.add(cDoorR); context.objects.push(cDoorR);
-            }
-        }
+    addCollisionBox(parent, context, new THREE.Vector3(2, roomHeight, depth), new THREE.Vector3(center.x - halfWidth, floorY + (roomHeight / 2), center.z), wallMaterial);
+    addCollisionBox(parent, context, new THREE.Vector3(2, roomHeight, depth), new THREE.Vector3(center.x + halfWidth, floorY + (roomHeight / 2), center.z), wallMaterial);
+    addCollisionBox(parent, context, new THREE.Vector3((width / 2) - 20, roomHeight, 2), new THREE.Vector3(center.x - ((width / 4) + 10), floorY + (roomHeight / 2), zBack), wallMaterial);
+    addCollisionBox(parent, context, new THREE.Vector3((width / 2) - 20, roomHeight, 2), new THREE.Vector3(center.x + ((width / 4) + 10), floorY + (roomHeight / 2), zBack), wallMaterial);
+    addDoorSet(parent, context, {
+        position: new THREE.Vector3(center.x, floorY, zBack),
+        axis: 'z',
+        width: 34,
+        height: 40,
+        material: nameMaterial,
+        frameMaterial: glassMaterial,
+        openAngle: Math.PI / 3.8,
     });
 
-    // ======================================
-    // U-STYLE STAIRCASE TO FLOOR 1 (Left Wing)
-    // ======================================
-    // Landing pads for connections
-    const stLanding1 = new THREE.Mesh(new THREE.BoxGeometry(40, 40, 40), fMat);
-    stLanding1.position.set(-200, 20, -50); uGrp.add(stLanding1); context.walkableFloors.push(stLanding1);
-    
-    // First Flight up to Landing
-    for(let i=0; i<20; i++) {
-        const step = new THREE.Mesh(new THREE.BoxGeometry(40, 2, 4), fMat);
-        step.position.set(-200, 1 + (i*2), 30 - (i*4)); uGrp.add(step); context.walkableFloors.push(step);
-    }
-    // Second Flight up to Floor 1
-    for(let i=0; i<20; i++) {
-        const step = new THREE.Mesh(new THREE.BoxGeometry(40, 2, 4), fMat);
-        step.position.set(-240, 41 + (i*2), -50 + (i*4)); uGrp.add(step); context.walkableFloors.push(step);
-    }
+    const desk = new THREE.Mesh(new THREE.BoxGeometry(34, 10, 16), deskMaterial);
+    desk.position.set(center.x, floorY + 5, center.z + 8);
+    parent.add(desk);
+    context.objects.push(desk);
 
-    // ======================================
-    // STRAIGHT STAIRCASE TO FLOOR 2 (Right Wing)
-    // ======================================
-    for(let i=0; i<40; i++) {
-        const step = new THREE.Mesh(new THREE.BoxGeometry(40, 2, 4), fMat);
-        step.position.set(-200, 81 + (i*2), 80 - (i*4)); uGrp.add(step); context.walkableFloors.push(step);
-    }
+    const chair = new THREE.Mesh(new THREE.BoxGeometry(12, 8, 12), chairMaterial);
+    chair.position.set(center.x, floorY + 4, center.z + 26);
+    parent.add(chair);
+    context.objects.push(chair);
 
-    // ======================================
-    // GROUND FLOOR: VIP LUXURY OFFICES
-    // ======================================
-    // Admin Back Area: Massive Chairman Lounge
-    const loungeRug = new THREE.Mesh(new THREE.PlaneGeometry(120, 300), new THREE.MeshStandardMaterial({color: 0x8b0000})); // Deep red carpet
-    loungeRug.rotation.x = -Math.PI / 2; loungeRug.position.set(80, 2, 0); uGrp.add(loungeRug);
-    
-    // Chairman Table
-    const cTable = new THREE.Mesh(new THREE.BoxGeometry(40, 15, 80), new THREE.MeshStandardMaterial({color: 0x2e1503}));
-    cTable.position.set(100, 7.5, 0); uGrp.add(cTable); context.objects.push(cTable);
-    
-    createNPC(780, 0, -160, "Administrative Officer", "Welcome to the Chairman's lounge. Only VIPs and top percentile students may arrange meetings here.", 0xff0000); 
+    const credenza = new THREE.Mesh(new THREE.BoxGeometry(width - 36, 12, 12), deskMaterial);
+    credenza.position.set(center.x, floorY + 6, center.z - 28);
+    parent.add(credenza);
+    context.objects.push(credenza);
+}
 
-    // Principal's Office (Right Arm, Room 1: Z=120 to 200, X=0 to -150)
-    const pDeskGeo = new THREE.BoxGeometry(25, 12, 50);
-    const pDesk = new THREE.Mesh(pDeskGeo, new THREE.MeshStandardMaterial({color: 0x5c4033}));
-    pDesk.position.set(-75, 6, 160); uGrp.add(pDesk); context.objects.push(pDesk);
-    createNPC(600, 0, 0, "Principal", "Ah, a new arrival. Engineering is not just science, it's art. Do not disappoint us.", 0xffaa00);
+export function buildAdminBlock(context, createNPC) {
+    const block = new THREE.Group();
+    block.position.set(700, 0, -160);
 
-    // ======================================
-    // FLOOR 1: CHEMISTRY & PHYSICS LABS
-    // ======================================
-    const vatMat = new THREE.MeshStandardMaterial({color: 0x00ff00, transparent: true, opacity: 0.8, emissive: 0x00ff00, emissiveIntensity: 0.5});
-    const labBenchMat = new THREE.MeshStandardMaterial({color: 0xeeeeee});
-    const cpuMat = new THREE.MeshStandardMaterial({color: 0x111111});
-    const chairMat = new THREE.MeshStandardMaterial({color: 0x333333});
-    // Chem Lab (Left Arm Floor 1)
-    for(let r=0; r<4; r++) {
-        for(let c=0; c<3; c++) {
-            const bench = new THREE.Mesh(new THREE.BoxGeometry(15, 8, 30), labBenchMat);
-            bench.position.set(-75 - (c*150), 84, -150 + (r*20)); uGrp.add(bench); context.objects.push(bench);
-            
-            // Lab Chair
-            const lChair = new THREE.Mesh(new THREE.BoxGeometry(5, 5, 5), chairMat); lChair.position.set(-65 - (c*150), 82.5, -150 + (r*20)); uGrp.add(lChair); context.objects.push(lChair);
-            
-            // Workstation CPU
-            const cpu = new THREE.Mesh(new THREE.BoxGeometry(2, 6, 8), cpuMat); cpu.position.set(-73 - (c*150), 83, -140 + (r*20)); uGrp.add(cpu);
+    const shellMaterial = new THREE.MeshStandardMaterial({ color: 0xe5d7c7, roughness: 0.9 });
+    const trimMaterial = new THREE.MeshStandardMaterial({ color: 0xcbb8a2, roughness: 0.88 });
+    const floorMaterial = new THREE.MeshStandardMaterial({ color: 0x909596, roughness: 0.74 });
+    const stairMaterial = new THREE.MeshStandardMaterial({ color: 0x707780, roughness: 0.7 });
+    const glassMaterial = new THREE.MeshStandardMaterial({ color: 0xc8dcea, transparent: true, opacity: 0.28 });
+    const doorMaterial = new THREE.MeshStandardMaterial({ color: 0x6a4630, roughness: 0.82 });
+    const deskMaterial = new THREE.MeshStandardMaterial({ color: 0x6b4a32, roughness: 0.84 });
+    const chairMaterial = new THREE.MeshStandardMaterial({ color: 0x32373b, roughness: 0.72 });
 
-            // Glowing Acid Vats
-            const vat = new THREE.Mesh(new THREE.CylinderGeometry(3, 3, 6, 16), vatMat);
-            vat.position.set(-77 - (c*150), 91, -150 + (r*20)); uGrp.add(vat);
-        }
-    }
-    
-    // Teaching boards inside Lab rooms
-    for(let c=0; c<3; c++) {
-        const board = new THREE.Mesh(new THREE.BoxGeometry(2, 20, 40), new THREE.MeshStandardMaterial({color: 0x054005})); // Chalkboard Green
-        board.position.set(-149 - (c*150), 100, -150); uGrp.add(board);
-    }
-    createNPC(500, 80, -310, "Physics Professor", "We simulate Newtonian mechanics here. If the gravity bugs out, it's not my fault. Blame the space-time continuum.", 0x00ffff);
-    createNPC(500, 80, -10, "Chemistry Professor", "Don't touch the chemical vats! The acid will eat right through your polygonal mesh.", 0x00ff00);
+    const floorLevels = [0, 70, 140];
+    const shellHeight = 68;
+    const buildingWidth = 720;
+    const buildingDepth = 460;
+    const frontZ = 229;
+    const backZ = -229;
 
-    // ======================================
-    // FLOOR 2: EXAM LECTURE HALLS
-    // ======================================
-    const deskGeo = new THREE.BoxGeometry(12, 5, 20);
-    const deskMat = new THREE.MeshStandardMaterial({color: 0x8b4513});
-    for(let room=0; room<4; room++) {
-        const cx = -75 - (room*150);
-        // Smart Teaching Boards at front of Classrooms
-        const sBoard1 = new THREE.Mesh(new THREE.BoxGeometry(2, 20, 60), new THREE.MeshStandardMaterial({color: 0xffffff})); // Whiteboard
-        sBoard1.position.set(cx - 59, 180, -150); uGrp.add(sBoard1);
-        const sBoard2 = new THREE.Mesh(new THREE.BoxGeometry(2, 20, 60), new THREE.MeshStandardMaterial({color: 0xffffff}));
-        sBoard2.position.set(cx - 59, 180, 150); uGrp.add(sBoard2);
+    for (const level of floorLevels) {
+        addWalkableBox(block, context, new THREE.Vector3(buildingWidth, 2, buildingDepth), new THREE.Vector3(0, level, 0), floorMaterial);
 
-        for(let r=0; r<4; r++) {
-            for(let c=-1; c<=1; c++) {
-                const d3 = new THREE.Mesh(deskGeo, deskMat);
-                d3.position.set(cx + c*30, 162.5, -180 + r*25); uGrp.add(d3); context.objects.push(d3);
-                // Chair attached to desk
-                const ch1 = new THREE.Mesh(new THREE.BoxGeometry(5, 5, 5), new THREE.MeshStandardMaterial({color: 0x333333}));
-                ch1.position.set(cx + c*30 + 10, 162.5, -180 + r*25); uGrp.add(ch1); context.objects.push(ch1);
+        addCollisionBox(block, context, new THREE.Vector3(buildingWidth, shellHeight, 2), new THREE.Vector3(0, level + (shellHeight / 2), backZ), shellMaterial);
+        addCollisionBox(block, context, new THREE.Vector3(2, shellHeight, buildingDepth), new THREE.Vector3(-(buildingWidth / 2) + 1, level + (shellHeight / 2), 0), shellMaterial);
+        addCollisionBox(block, context, new THREE.Vector3(2, shellHeight, buildingDepth), new THREE.Vector3((buildingWidth / 2) - 1, level + (shellHeight / 2), 0), shellMaterial);
 
-                const d4 = new THREE.Mesh(deskGeo, deskMat);
-                d4.position.set(cx + c*30, 162.5, 120 + r*25); uGrp.add(d4); context.objects.push(d4);
-                // Chair attached to desk
-                const ch2 = new THREE.Mesh(new THREE.BoxGeometry(5, 5, 5), new THREE.MeshStandardMaterial({color: 0x333333}));
-                ch2.position.set(cx + c*30 + 10, 162.5, 120 + r*25); uGrp.add(ch2); context.objects.push(ch2);
-            }
+        if (level === 0) {
+            addCollisionBox(block, context, new THREE.Vector3(300, shellHeight, 2), new THREE.Vector3(-210, level + (shellHeight / 2), frontZ), shellMaterial);
+            addCollisionBox(block, context, new THREE.Vector3(300, shellHeight, 2), new THREE.Vector3(210, level + (shellHeight / 2), frontZ), shellMaterial);
+            addCollisionBox(block, context, new THREE.Vector3(88, 18, 2), new THREE.Vector3(0, level + 58, frontZ), shellMaterial);
+            addCollisionBox(block, context, new THREE.Vector3(33, 40, 2), new THREE.Vector3(-43.5, level + 20, frontZ), glassMaterial);
+            addCollisionBox(block, context, new THREE.Vector3(33, 40, 2), new THREE.Vector3(43.5, level + 20, frontZ), glassMaterial);
+            addDoorSet(block, context, {
+                position: new THREE.Vector3(0, level, frontZ),
+                axis: 'z',
+                width: 54,
+                height: 40,
+                material: doorMaterial,
+                frameMaterial: trimMaterial,
+                openAngle: Math.PI / 4.5,
+            });
+        } else {
+            addCollisionBox(block, context, new THREE.Vector3(210, 34, 2), new THREE.Vector3(-245, level + 18, frontZ), glassMaterial);
+            addCollisionBox(block, context, new THREE.Vector3(210, 34, 2), new THREE.Vector3(245, level + 18, frontZ), glassMaterial);
+            addCollisionBox(block, context, new THREE.Vector3(100, 34, 2), new THREE.Vector3(0, level + 18, frontZ), glassMaterial);
+            addCollisionBox(block, context, new THREE.Vector3(buildingWidth, 30, 2), new THREE.Vector3(0, level + 52, frontZ), shellMaterial);
         }
     }
 
-    // Central Gigascale Fountain
-    const fGrp = new THREE.Group(); fGrp.position.set(-300, 0, 0); uGrp.add(fGrp);
-    const base = new THREE.Mesh(new THREE.CylinderGeometry(40, 40, 4, 32), new THREE.MeshStandardMaterial({color: 0xaaaaaa})); base.position.y = 2; fGrp.add(base); context.objects.push(base);
-    const water = new THREE.Mesh(new THREE.SphereGeometry(18, 16, 16), new THREE.MeshStandardMaterial({color: 0x00aaff, transparent: true, opacity: 0.7})); water.position.y = 12; fGrp.add(water);
+    addWalkableBox(block, context, new THREE.Vector3(buildingWidth, 2, buildingDepth), new THREE.Vector3(0, 210, 0), floorMaterial, { walkableOnly: true });
+    addCollisionBox(block, context, new THREE.Vector3(buildingWidth, 16, 2), new THREE.Vector3(0, 218, backZ), trimMaterial);
+    addCollisionBox(block, context, new THREE.Vector3(buildingWidth, 16, 2), new THREE.Vector3(0, 218, frontZ), trimMaterial);
+    addCollisionBox(block, context, new THREE.Vector3(2, 16, buildingDepth), new THREE.Vector3(-(buildingWidth / 2) + 1, 218, 0), trimMaterial);
+    addCollisionBox(block, context, new THREE.Vector3(2, 16, buildingDepth), new THREE.Vector3((buildingWidth / 2) - 1, 218, 0), trimMaterial);
 
-    return uGrp;
+    // Open stair bays with no intermediate pillars or blocking walls.
+    for (const stairX of [-250, 250]) {
+        createStaircase(block, context, {
+            position: new THREE.Vector3(stairX, 0, -70),
+            axis: 'z',
+            direction: 1,
+            width: 76,
+            steps: 18,
+            stepRise: 3.9,
+            stepRun: 10,
+            material: stairMaterial,
+            landingSize: new THREE.Vector3(86, 2, 26),
+            addRailings: true,
+        });
+        createStaircase(block, context, {
+            position: new THREE.Vector3(stairX, 70, -70),
+            axis: 'z',
+            direction: 1,
+            width: 76,
+            steps: 18,
+            stepRise: 3.9,
+            stepRun: 10,
+            material: stairMaterial,
+            landingSize: new THREE.Vector3(86, 2, 26),
+            addRailings: true,
+        });
+    }
+
+    // Ground floor admin offices.
+    addOfficeSuite(block, context, {
+        center: new THREE.Vector3(-165, 0, 140),
+        width: 180,
+        depth: 115,
+        floorY: 0,
+        nameMaterial: doorMaterial,
+        deskMaterial,
+        chairMaterial,
+        wallMaterial: trimMaterial,
+        glassMaterial,
+    });
+    addOfficeSuite(block, context, {
+        center: new THREE.Vector3(165, 0, 140),
+        width: 180,
+        depth: 115,
+        floorY: 0,
+        nameMaterial: doorMaterial,
+        deskMaterial,
+        chairMaterial,
+        wallMaterial: trimMaterial,
+        glassMaterial,
+    });
+
+    furnishSeminarHall(block, context, { center: new THREE.Vector3(0, 0, -95), width: 520, depth: 180, floorY: 0, accent: 0x244f2a });
+    furnishSeminarHall(block, context, { center: new THREE.Vector3(0, 0, 20), width: 240, depth: 110, floorY: 0, accent: 0x29592b });
+    furnishSeminarHall(block, context, { center: new THREE.Vector3(0, 0, -105), width: 560, depth: 180, floorY: 70, accent: 0x1f4f28 });
+    furnishSeminarHall(block, context, { center: new THREE.Vector3(0, 0, 115), width: 560, depth: 160, floorY: 70, accent: 0x24582d });
+    furnishSeminarHall(block, context, { center: new THREE.Vector3(0, 0, -105), width: 560, depth: 180, floorY: 140, accent: 0x214e29 });
+    furnishSeminarHall(block, context, { center: new THREE.Vector3(0, 0, 115), width: 560, depth: 160, floorY: 140, accent: 0x2a5c31 });
+
+    const receptionDesk = new THREE.Mesh(new THREE.BoxGeometry(90, 12, 24), deskMaterial);
+    receptionDesk.position.set(0, 6, 78);
+    block.add(receptionDesk);
+    context.objects.push(receptionDesk);
+
+    createNPC(535, 0, -20, 'Administrative Officer', 'The administration wing is organized around clear circulation, open stair bays, and secure office rooms.', 0xff0000);
+    createNPC(865, 0, -20, 'Principal', 'A real academic block should feel ordered, legible, and calm. This one now does.', 0xffaa00);
+    createNPC(700, 70, -260, 'Seminar Coordinator', 'These seminar halls are designed for talks, reviews, and department briefings.', 0x00d7ff);
+
+    return block;
 }

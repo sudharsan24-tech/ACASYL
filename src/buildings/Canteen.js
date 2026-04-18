@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { addDoorSet } from './buildingUtils.js';
 
 export function buildCanteen(context, createNPC) {
     const cGrp = new THREE.Group();
@@ -19,13 +20,26 @@ export function buildCanteen(context, createNPC) {
     const wR = new THREE.Mesh(new THREE.BoxGeometry(2, 40, 400), glassMat); wR.position.set(149, 20, 0); cGrp.add(wR); context.objects.push(wR);
 
     // Front Glass Wall (Split for Entrance)
-    const wFL = new THREE.Mesh(new THREE.BoxGeometry(100, 40, 2), glassMat); wFL.position.set(-100, 20, 199); cGrp.add(wFL); context.objects.push(wFL);
-    const wFR = new THREE.Mesh(new THREE.BoxGeometry(100, 40, 2), glassMat); wFR.position.set(100, 20, 199); cGrp.add(wFR); context.objects.push(wFR);
+    const wFL = new THREE.Mesh(new THREE.BoxGeometry(122, 40, 2), glassMat); wFL.position.set(-89, 20, 199); cGrp.add(wFL); context.objects.push(wFL);
+    const wFR = new THREE.Mesh(new THREE.BoxGeometry(122, 40, 2), glassMat); wFR.position.set(89, 20, 199); cGrp.add(wFR); context.objects.push(wFR);
+    const roof = new THREE.Mesh(new THREE.BoxGeometry(300, 2, 400), floorMat);
+    roof.position.set(0, 40, 0); roof.receiveShadow = true; cGrp.add(roof); context.walkableFloors.push(roof);
+    const upperFront = new THREE.Mesh(new THREE.BoxGeometry(300, 14, 2), glassMat); upperFront.position.set(0, 47, 199); cGrp.add(upperFront); context.objects.push(upperFront);
+    const upperBack = new THREE.Mesh(new THREE.BoxGeometry(300, 14, 2), glassMat); upperBack.position.set(0, 47, -199); cGrp.add(upperBack); context.objects.push(upperBack);
+    const upperLeft = new THREE.Mesh(new THREE.BoxGeometry(2, 14, 400), glassMat); upperLeft.position.set(-149, 47, 0); cGrp.add(upperLeft); context.objects.push(upperLeft);
+    const upperRight = new THREE.Mesh(new THREE.BoxGeometry(2, 14, 400), glassMat); upperRight.position.set(149, 47, 0); cGrp.add(upperRight); context.objects.push(upperRight);
     
     // Front Doors
     const doorMat = new THREE.MeshStandardMaterial({color: 0x8b5a2b});
-    const dL = new THREE.Mesh(new THREE.BoxGeometry(50, 40, 2), doorMat); dL.position.set(-25, 20, 190); dL.rotation.y = -Math.PI/4; cGrp.add(dL); context.objects.push(dL);
-    const dR = new THREE.Mesh(new THREE.BoxGeometry(50, 40, 2), doorMat); dR.position.set(25, 20, 190); dR.rotation.y = Math.PI/4; cGrp.add(dR); context.objects.push(dR);
+    addDoorSet(cGrp, context, {
+        position: new THREE.Vector3(0, 0, 199),
+        axis: 'z',
+        width: 50,
+        height: 38,
+        material: doorMat,
+        frameMaterial: glassMat,
+        openAngle: Math.PI / 4.6,
+    });
 
     // Procedural Cafe Tables
     const tableGeo = new THREE.CylinderGeometry(8, 8, 2);

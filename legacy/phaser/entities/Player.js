@@ -4,7 +4,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y) {
     // We are using our generated 'player_sprite' texture from BootScene
     super(scene, x, y, 'player_sprite');
-    
+
     scene.add.existing(this);
     scene.physics.add.existing(this);
 
@@ -12,7 +12,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     this.setCollideWorldBounds(true);
     this.setDamping(true);
     this.setDrag(0.001); // smooth deceleration
-    
+
     // Setup inputs
     this.cursors = scene.input.keyboard.createCursorKeys();
     this.wasd = {
@@ -21,7 +21,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
       left: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
       right: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
     };
-    
+
     this.speed = 250;
   }
 
@@ -57,3 +57,4 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     }
   }
 }
+
